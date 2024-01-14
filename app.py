@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, session
 import token_manager
 import os
 
@@ -11,6 +11,14 @@ TOKEN_FILE = os.path.join(BASE_DIR, 'usertokens.txt')
 # Define the admin username and password
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "gomakemoney"
+
+# 定义API密钥
+API_KEY = "gomakemoney"
+
+# 在app.py中添加验证函数
+def validate_api_key():
+    if request.headers.get('API-Key') != API_KEY:
+        return Response("Unauthorized", status=401)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -78,6 +86,57 @@ def delete():
     except Exception as e:
         print(f"Error deleting token: {e}")
     return redirect(url_for('index'))
+
+@app.route('/api/tokens', methods=['GET'])
+def get_all_tokens():
+    auth = validate_api_key()
+    if auth:
+        return auth
+    return jsonify(token_manager.get_tokens_details(TOKEN_FILE))
+
+@app.route('/api/token/<token_id>', methods=['GET'])
+def get_token(token_id):
+    auth = validate_api_key()
+    if auth:
+        return auth
+    tokens = token_manager.get_tokens_details(TOKEN_FILE)
+    token_info = tokens.get(token_id)
+    if token_info:
+        return jsonify({token_id: token_info})
+    return Response("Token not found", status=404)
+
+@app.route('/api/token', methods=['POST'])
+def api_add_token():
+    auth = validate_api_key()
+    if auth:
+        return auth
+    token = request.json.get('token')
+    if token:
+        try:
+            token_manager.add_token(token, TOKEN_FILE)
+            return Response("Token added", status=201)
+        except Exception as e:
+            return Response(str(e), status=400)
+    return Response("Invalid request", status=400)
+
+@app.route('/api/token', methods=['DELETE'])
+def api_delete_token():
+    auth = validate_api_key()
+    if auth:
+        return auth
+    token = request.json.get('token')
+    if token:
+        try:
+            token_manager.delete_token(token, TOKEN_FILE)
+            return Response("Token deleted", status=200)
+        except Exception as e:
+            return Response(str(e), status=400)
+    return Response("Invalid request", status=400)
+
+@app.route('/testheaders', methods=['GET'])
+def test_headers():
+    print(f"Received headers: {request.headers}")
+    return jsonify(dict(request.headers))
 
 if __name__ == '__main__':
     app.run(debug=True)
