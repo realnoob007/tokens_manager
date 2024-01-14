@@ -1,5 +1,6 @@
 import yaml
 import os
+import time
 
 def read_tokens(file_path):
     tokens = []
@@ -25,9 +26,14 @@ def update_all_configs(root_directory, token_file_path):
                 print(f"Updating: {config_file_path}")  # Print the path of the file being updated
                 update_config_file(config_file_path, token_file_path)
 
+def main_loop(root_directory, token_file_path, interval=60):
+    while True:
+        update_all_configs(root_directory, token_file_path)
+        time.sleep(interval)
+        
 # Root directory to search for config.yaml files
 root_directory = 'path/to/your/directory'  # Replace with the path to your root directory
 token_file_path = 'path/to/manager/usertokens.txt'  # Replace with the path to your usertokens.txt
 
 # Update all config files
-update_all_configs(root_directory, token_file_path)
+main_loop(root_directory, token_file_path)
