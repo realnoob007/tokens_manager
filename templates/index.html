@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Token Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Token Manager</h1>
+        
+        <!-- Form for adding a single token -->
+        <div class="add-token-form">
+            <form action="/" method="post">
+                <input type="text" name="token" placeholder="Enter new token">
+                <button type="submit">Add Token</button>
+            </form>
+        </div>
+
+        <!-- Form for uploading a file with tokens -->
+        <div class="upload-token-form">
+            <form action="/" method="post" enctype="multipart/form-data">
+                <input type="file" name="file">
+                <button type="submit">Upload Tokens</button>
+            </form>
+        </div>
+
+        <ul class="token-list">
+            {% for token, details in tokens.items() %}
+                <li class="token-item">
+                    <div class="token-info">
+                        <span class="token-name">{{ token }}</span>
+                        <span class="token-details">Created at: {{ details.created_at }}, Expires in: {{ details.expires_in }} days</span>
+                    </div>
+                    <!-- Form for deleting a token -->
+                    <form class="delete-token-form" action="/delete" method="post">
+                        <input type="hidden" name="token" value="{{ token }}">
+                        <button type="submit">Delete</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
