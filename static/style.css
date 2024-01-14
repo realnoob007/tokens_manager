@@ -1,0 +1,93 @@
+/* style.css */
+
+/* Style the body */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Style the container */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+
+/* Style the header */
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+/* Style the forms */
+.add-token-form,
+.upload-token-form {
+    margin-bottom: 20px;
+}
+
+form {
+    background-color: #f8f8f8;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Style the text input fields */
+input[type="text"] {
+    width: 70%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+/* Style the buttons */
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+/* Style the list of tokens */
+.token-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.token-item {
+    background-color: #fff;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Style the token name and details */
+.token-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.token-name {
+    font-weight: bold;
+}
+
+.token-details {
+    color: #666;
+}
+
+/* Style the delete buttons */
+.delete-token-form {
+    margin-left: 10px;
+}
