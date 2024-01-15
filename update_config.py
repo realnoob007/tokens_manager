@@ -6,9 +6,7 @@ from filelock import FileLock
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
 def update_token_in_all_configs(config_dir, token, action):
-    config_dir=config_dir
     try:
         for dirpath, _, filenames in os.walk(config_dir):
             for filename in filenames:
@@ -20,11 +18,11 @@ def update_token_in_all_configs(config_dir, token, action):
                         delete_token_from_config(config_file_path, token)
     except Exception as e:
         logging.error(f"Error updating tokens in configs: {e}")
-        
+
 def read_config(config_file_path):
     with FileLock(config_file_path + ".lock"):
         with open(config_file_path, 'r') as file:
-            return yaml.safe_load(file)
+            return yaml.safe_load(file) or {}
 
 def write_config(config_file_path, config_data):
     with FileLock(config_file_path + ".lock"):
@@ -35,11 +33,11 @@ def add_token_to_config(config_file_path, token):
     logging.debug(f"Adding token {token} to {config_file_path}")
     try:
         config_data = read_config(config_file_path)
-        if 'USERTOKENS' not in config_data:
-            config_data['USERTOKENS'] = []
+        usertokens = config_data.get('USERTOKENS', [])
 
-        if token not in config_data['USERTOKENS']:
-            config_data['USERTOKENS'].append(token)
+        if token not in usertokens:
+            usertokens.append(token)
+            config_data['USERTOKENS'] = usertokens
             write_config(config_file_path, config_data)
             logging.info(f"Token {token} added to {config_file_path}")
         else:
@@ -51,8 +49,11 @@ def delete_token_from_config(config_file_path, token):
     logging.debug(f"Deleting token {token} from {config_file_path}")
     try:
         config_data = read_config(config_file_path)
-        if 'USERTOKENS' in config_data and token in config_data['USERTOKENS']:
-            config_data['USERTOKENS'].remove(token)
+        usertokens = config_data.get('USERTOKENS', [])
+
+        if token in usertokens:
+            usertokens.remove(token)
+            config_data['USERTOKENS'] = usertokens
             write_config(config_file_path, config_data)
             logging.info(f"Token {token} deleted from {config_file_path}")
         else:
