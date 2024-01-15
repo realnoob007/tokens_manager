@@ -1,8 +1,10 @@
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, session
+from flask_cors import CORS
 import token_manager
 import os
 
 app = Flask(__name__)
+cors = CORS(app)
 app.secret_key = 'aldjowiqodjoapdpapdjpadpawdwad'  # Replace with a strong secret key
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -139,5 +141,4 @@ def test_headers():
     return jsonify(dict(request.headers))
 
 if __name__ == '__main__':
-    context = ('/root/.acme.sh/dash3.5.planetzero.cn_ecc/fullchain.cer', '/root/.acme.sh/dash3.5.planetzero.cn_ecc/dash3.5.planetzero.cn.key')  # Path to certificate and key files
-    app.run(debug=True, ssl_context=context)
+    app.run(host='0.0.0.0', port=5000, debug=True)
