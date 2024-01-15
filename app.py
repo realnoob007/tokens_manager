@@ -1,7 +1,8 @@
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, session
 from flask_cors import CORS
-import token_manager
+import token_manager_db
 import os
+import update_config
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -9,6 +10,7 @@ app.secret_key = 'aldjowiqodjoapdpapdjpadpawdwad'  # Replace with a strong secre
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(BASE_DIR, 'usertokens.txt')
+CONFIG_DIR = '/code/manager'
 
 # Define the admin username and password
 ADMIN_USERNAME = "admin"
@@ -41,13 +43,15 @@ def index():
             return redirect(request.url)
         if file:
             add_tokens_from_file(file)
-    tokens = token_manager.get_tokens_details(TOKEN_FILE)
+    tokens = token_manager_db.get_tokens_details()
     return render_template('index.html', tokens=tokens)
 
 def add_tokens_from_file(file):
     new_tokens = [line.strip() for line in file.readlines() if line.strip()]
     for token in new_tokens:
-        token_manager.add_token(token.decode('utf-8'), TOKEN_FILE)
+        token_manager_db.add_token(token, 30)
+        update_config.add_token_to_config(token)
+    return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -74,8 +78,11 @@ def logout():
 @app.route('/add', methods=['POST'])
 def add():
     token = request.form['token']
+    validity_days_str = request.form.get('validity_days', '30')
+    validity_days = int(validity_days_str) if validity_days_str.isdigit() else 30
     try:
-        token_manager.add_token(token, TOKEN_FILE)
+        token_manager_db.add_token(token, validity_days)
+        update_config.update_token_in_all_configs(CONFIG_DIR, token, 'add')
     except Exception as e:
         print(f"Error adding token: {e}")
     return redirect(url_for('index'))
@@ -84,7 +91,8 @@ def add():
 def delete():
     token = request.form['token']
     try:
-        token_manager.delete_token(token, TOKEN_FILE)
+        token_manager_db.delete_token(token)
+        update_config.update_token_in_all_configs(CONFIG_DIR, token, 'delete')
     except Exception as e:
         print(f"Error deleting token: {e}")
     return redirect(url_for('index'))
@@ -94,17 +102,16 @@ def get_all_tokens():
     auth = validate_api_key()
     if auth:
         return auth
-    return jsonify(token_manager.get_tokens_details(TOKEN_FILE))
+    return jsonify(token_manager_db.get_tokens_details())
 
 @app.route('/api/token/<token_id>', methods=['GET'])
 def get_token(token_id):
     auth = validate_api_key()
     if auth:
         return auth
-    tokens = token_manager.get_tokens_details(TOKEN_FILE)
-    token_info = tokens.get(token_id)
+    token_info = token_manager_db.get_token_detail(token_id)
     if token_info:
-        return jsonify({token_id: token_info})
+        return jsonify(token_info)
     return Response("Token not found", status=404)
 
 @app.route('/api/token', methods=['POST'])
@@ -113,9 +120,11 @@ def api_add_token():
     if auth:
         return auth
     token = request.json.get('token')
+    validity_days = request.json.get('validity_days', 30)  # Default to 30 days if not specified
     if token:
         try:
-            token_manager.add_token(token, TOKEN_FILE)
+            token_manager_db.add_token(token, validity_days)
+            update_config.update_token_in_all_configs(CONFIG_DIR, token, 'add')
             return Response("Token added", status=201)
         except Exception as e:
             return Response(str(e), status=400)
@@ -129,16 +138,12 @@ def api_delete_token():
     token = request.json.get('token')
     if token:
         try:
-            token_manager.delete_token(token, TOKEN_FILE)
+            token_manager_db.delete_token(token)
+            update_config.update_token_in_all_configs(CONFIG_DIR, token, 'delete')
             return Response("Token deleted", status=200)
         except Exception as e:
             return Response(str(e), status=400)
     return Response("Invalid request", status=400)
 
-@app.route('/testheaders', methods=['GET'])
-def test_headers():
-    print(f"Received headers: {request.headers}")
-    return jsonify(dict(request.headers))
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
