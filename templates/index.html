@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Token Manager</title>
+    <title>用户令牌管理后台</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Token Manager</h1>
+        <h1>用户令牌管理后台</h1>
         
         <!-- Form for adding a single token -->
         <div class="add-token-form">
             <form action="/add" method="post">
-                <input type="text" name="token" placeholder="Enter new token">
-                <button type="submit">Add Token</button>
+                <input type="text" name="token" placeholder="输入新令牌">
+                <input type="number" name="validity_days" placeholder="有效天数(默认30)" min="1">
+                <button type="submit">新增令牌</button>
             </form>
         </div>
 
@@ -20,7 +21,7 @@
         <div class="upload-token-form">
             <form action="/" method="post" enctype="multipart/form-data">
                 <input type="file" name="file">
-                <button type="submit">Upload Tokens</button>
+                <button type="submit">批量导入</button>
             </form>
         </div>
 
@@ -29,12 +30,12 @@
                 <li class="token-item">
                     <div class="token-info">
                         <span class="token-name">{{ token }}</span>
-                        <span class="token-details">Created at: {{ details.created_at }}, Expires in: {{ details.expires_in }} days</span>
+                        <span class="token-details">创建于: {{ details.created_at }}, 有效天数: {{ details.expires_in }} 天</span>
                     </div>
                     <!-- Form for deleting a token -->
                     <form class="delete-token-form" action="/delete" method="post">
                         <input type="hidden" name="token" value="{{ token }}">
-                        <button type="submit">Delete</button>
+                        <button type="submit">删除</button>
                     </form>
                 </li>
             {% endfor %}
